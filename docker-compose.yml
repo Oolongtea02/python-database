@@ -1,0 +1,27 @@
+version: '3.7'
+
+services:
+  sz-py-db:
+    build:
+      context: .
+    image: sz-py-db
+    # DB USER and PASSWORD set in data_files/db-init-scripts/init-user-db.sh
+    #env_file: .env.saltui
+    # override command to wait for database to startup
+    #command: ['wait-for', 'postgres:5432', '-t', '30', '--', '/usr/local/sz-py-db/start.sh']
+    volumes:
+      - $PWD:/usr/local/sz-py-db
+    restart: unless-stopped
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:13-alpine
+    env_file: .env.postgres
+    volumes: 
+      - $PWD/data_files/data:/var/lib/postgresql/data
+      - $PWD/data_files/db-init-scripts:/docker-entrypoint-initdb.d
+    ports:
+      - 5432:5432
+    restart: unless-stopped
+

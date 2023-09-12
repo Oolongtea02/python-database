@@ -1,0 +1,49 @@
+version: '3.7'
+
+services:
+  sre_reports:
+    build:
+      context: .
+    image: sre_reports
+    # DB USER and PASSWORD set in data_files/db-init-scripts/init-user-db.sh
+    env_file: .env.sre_reports
+    environment:
+      DJANGO_SUPERUSER_EMAIL: ${SRE_REPORTS_SUPERUSER_EMAIL:-admin@sre_reports.local}
+      DJANGO_SUPERUSER_USERNAME: ${SRE_REPORTS_SUPERUSER_USERNAME:-admin}
+      DJANGO_SUPERUSER_PASSWORD: ${SRE_REPORTS_SUPERUSER_USERNAME:-password}
+    ports:
+      - 8080:8080
+      - 8443:8443
+
+    ## from dz for new project updates to sre_reports repo
+    volumes:
+      - $PWD:/opt/sre_reports
+ 
+    # override command to wait for database to startup
+    command: ['/opt/sre_reports/start.sh']
+    restart: unless-stopped
+    #depends_on:
+    #  - postgres
+    #labels:
+    #  ofelia.enabled: "true"
+    #  ofelia.job-exec.get-info.schedule: "@every 24h"
+    #  ofelia.job-exec.get-info.command: "/opt/sre_reports/update.sh all"
+    #  ofelia.job-exec.get-info.no-overlap: "true"
+  
+  #postgres:
+  #  image: postgres:13-alpine
+  #  env_file: .env.postgres
+  #  volumes: 
+  #    - $PWD/data_files/data:/var/lib/postgresql/data
+  #    - $PWD/data_files/db-init-scripts:/docker-entrypoint-initdb.d
+  #  ports:
+  #    - 5432:5432
+  #  restart: unless-stopped
+
+  #ofelia:
+  #  image: mcuadros/ofelia:latest
+  #  depends_on:
+  #    - sre_reports
+  #  command: daemon --docker
+  #  volumes:
+  #    - /var/run/docker.sock:/var/run/docker.sock:ro
